@@ -101,30 +101,41 @@ export async function transactionsRoutes(app: FastifyInstance) {
     return reply.status(201).send()
   })
 
-  app.delete('/:transactionId', async (request, reply) => {
-    const deleteTransactionParamSchema = z.object({
-      transactionId: z.string().uuid(),
-    })
-
-    const deleteTransactionResponse = deleteTransactionParamSchema.safeParse(
-      request.params,
-    )
-
-    if (!deleteTransactionResponse.success) {
-      return reply.status(400).send({
-        message: deleteTransactionResponse.error.message,
+  app.delete(
+    '/:transactionId',
+    {
+      preHandler: [checkSessionIdExists],
+    },
+    async (request, reply) => {
+      const deleteTransactionParamSchema = z.object({
+        transactionId: z.string().uuid(),
       })
-    }
 
-    const { transactionId } = deleteTransactionResponse.data
-    const deletedTransactions = await knex('transactions')
-      .where('id', transactionId)
-      .del('id')
+      const deleteTransactionResponse = deleteTransactionParamSchema.safeParse(
+        request.params,
+      )
 
-    if (!deletedTransactions) {
-      return reply.status(404).send()
-    }
+      if (!deleteTransactionResponse.success) {
+        return reply.status(400).send({
+          message: deleteTransactionResponse.error.message,
+        })
+      }
 
-    return reply.status(204).send()
-  })
+      const sessionId = request.cookies.sessionId
+
+      const { transactionId } = deleteTransactionResponse.data
+      const deletedTransactions = await knex('transactions')
+        .where({
+          id: transactionId,
+          session_id: sessionId,
+        })
+        .del('id')
+
+      if (!deletedTransactions) {
+        return reply.status(404).send()
+      }
+
+      return reply.status(204).send()
+    },
+  )
 }

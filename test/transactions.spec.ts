@@ -119,4 +119,29 @@ describe('Transactions routes', () => {
       amount: 800,
     })
   })
+
+  it('should be able to delete a transaction', async () => {
+    const createTransactionResponse = await request(app.server)
+      .post('/transactions')
+      .send({
+        title: 'Transaction to be deleted',
+        amount: 1000,
+        type: 'credit',
+      })
+      .expect(201)
+
+    const cookies = createTransactionResponse.get('Set-Cookie') ?? []
+
+    const listTransactionsResponse = await request(app.server)
+      .get('/transactions')
+      .set('Cookie', cookies)
+      .expect(200)
+
+    const transactionId = listTransactionsResponse.body.transactions[0].id
+
+    await request(app.server)
+      .delete(`/transactions/${transactionId}`)
+      .set('Cookie', cookies)
+      .expect(204)
+  })
 })
