@@ -8,7 +8,14 @@ const sqliteConnection = {
 export const config: Knex.Config = {
   client: env.DATABASE_CLIENT,
   connection:
-    env.DATABASE_CLIENT === 'sqlite' ? sqliteConnection : env.DATABASE_URL,
+    env.DATABASE_CLIENT === 'sqlite'
+      ? sqliteConnection
+      : {
+          connectionString: env.DATABASE_URL,
+          ssl: {
+            rejectUnauthorized: false,
+          },
+        },
   useNullAsDefault: true,
   migrations: {
     extension: 'ts',
