@@ -1,5 +1,12 @@
+# Dependencies
 node_modules
-package-lock.json
-db/app.db
+
+# Datbase
+db/*.db
+
+# Environment
 .env
 .env.test
+
+# Build
+build
